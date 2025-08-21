@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Space</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Firebase SDK - Only Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Memory Space</h1>
+            <p>Your personal gallery in the cloud</p>
+        </header>
+        
+        <div class="upload-area">
+            <input type="file" id="photoUpload" accept="image/*" multiple>
+            <label for="photoUpload" class="upload-btn">
+                <div class="upload-icon">📸</div>
+                <span>Choose Photos</span>
+            </label>
+        </div>
+
+        <div class="gallery" id="gallery">
+            <!-- Photos will be loaded here -->
+        </div>
+
+        <!-- Simple Modal -->
+        <div id="photoModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <img id="modalImage" src="" alt="Photo">
+                <div class="photo-details">
+                    <h3 id="photoName"></h3>
+                    <p id="photoDate"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script-minimal.js"></script>
+</body>
+</html>

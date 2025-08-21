@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Storage Test - Shape Memory Space</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Firebase Storage & Firestore Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Firestore Database</h2>
+        <button onclick="testFirestore()">Test Firestore Connection</button>
+        <div id="firestoreResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Firebase Storage</h2>
+        <input type="file" id="testFile" accept="image/*">
+        <button onclick="testStorage()">Test Storage Upload</button>
+        <div id="storageResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Complete System</h2>
+        <button onclick="testComplete()">Test Full Upload & Save</button>
+        <div id="completeResults"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQIATsqgmEMhdpSsM_DB11YXH18p3UG08",
+            authDomain: "memoryspace-fe5ab.firebaseapp.com",
+            projectId: "memoryspace-fe5ab",
+            storageBucket: "memoryspace-fe5ab.firebasestorage.app",
+            messagingSenderId: "618698649513",
+            appId: "1:618698649513:web:eac0d49ab0fceb25eb9eb8"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        async function testFirestore() {
+            const resultsDiv = document.getElementById('firestoreResults');
+            resultsDiv.innerHTML = '<div class="info">Testing Firestore...</div>';
+
+            try {
+                await db.collection('test').doc('connection').set({
+                    message: 'Firestore test successful!',
+                    timestamp: new Date(),
+                    test: true
+                });
+
+                const doc = await db.collection('test').doc('connection').get();
+                
+                if (doc.exists) {
+                    resultsDiv.innerHTML = '<div class="success">✅ Firestore is working perfectly!</div>';
+                    await db.collection('test').doc('connection').delete();
+                } else {
+                    throw new Error('Document was not created');
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Firestore Error: ${error.message}</div>`;
+                console.error('Firestore test failed:', error);
+            }
+        }
+
+        async function testStorage() {
+            const resultsDiv = document.getElementById('storageResults');
+            const fileInput = document.getElementById('testFile');
+            
+            if (!fileInput.files[0]) {
+                resultsDiv.innerHTML = '<div class="error">Please select an image file first!</div>';
+                return;
+            }
+
+            const file = fileInput.files[0];
+            resultsDiv.innerHTML = '<div class="info">Testing Storage upload...</div>';
+
+            try {
+                // Create a test upload
+                const timestamp = Date.now();
+                const filename = `test/${timestamp}_${file.name}`;
+                const storageRef = storage.ref(filename);
+                
+                // Upload file
+                const snapshot = await storageRef.put(file);
+                const downloadURL = await snapshot.ref.getDownloadURL();
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">✅ Storage upload successful!</div>
+                    <p><strong>File uploaded to:</strong> ${filename}</p>
+                    <p><strong>Download URL:</strong> <a href="${downloadURL}" target="_blank">View Image</a></p>
+                `;
+                
+                // Clean up test file
+                setTimeout(async () => {
+                    try {
+                        await storageRef.delete();
+                        resultsDiv.innerHTML += '<p class="info">Test file cleaned up.</p>';
+                    } catch (e) {
+                        console.log('Cleanup failed:', e);
+                    }
+                }, 5000);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Storage Error: ${error.message}</div>`;
+                if (error.code === 'storage/unauthorized') {
+                    resultsDiv.innerHTML += '<p class="error">Storage is not enabled or rules are too restrictive!</p>';
+                }
+                console.error('Storage test failed:', error);
+            }
+        }
+
+        async function testComplete() {
+            const resultsDiv = document.getElementById('completeResults');
+            resultsDiv.innerHTML = '<div class="info">Testing complete system...</div>';
+
+            try {
+                // Create test data similar to your app
+                const testData = {
+                    id: `test_${Date.now()}`,
+                    name: 'test-memory.jpg',
+                    url: 'https://via.placeholder.com/120/4CAF50/white?text=TEST',
+                    uploadDate: new Date().toISOString(),
+                    x: 100,
+                    y: 100,
+                    vx: 1,
+                    vy: 1,
+                    rotation: 0,
+                    rotationSpeed: 0.01,
+                    scale: 1.0,
+                    targetScale: 1.0,
+                    alpha: 1
+                };
+
+                // Save to Firestore
+                await db.collection('memories').doc(testData.id).set(testData);
+                
+                // Read back from Firestore
+                const doc = await db.collection('memories').doc(testData.id).get();
+                
+                if (doc.exists) {
+                    resultsDiv.innerHTML = `
+                        <div class="success">✅ Complete system test successful!</div>
+                        <p>Your Shape Memory Space app should work perfectly now!</p>
+                        <pre>${JSON.stringify(doc.data(), null, 2)}</pre>
+                    `;
+                    
+                    // Clean up
+                    await db.collection('memories').doc(testData.id).delete();
+                } else {
+                    throw new Error('Data was not saved properly');
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ System Test Error: ${error.message}</div>`;
+                console.error('Complete test failed:', error);
+            }
+        }
+    </script>
+</body>
+</html>

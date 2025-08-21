@@ -1,0 +1,254 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: #0a0a0a;
+    color: white;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.galaxy-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 35%, #0f0f23 100%);
+    overflow: hidden;
+}
+
+/* Stars background animation */
+.galaxy-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+        radial-gradient(2px 2px at 40% 70%, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(2px 2px at 80% 10%, rgba(255,255,255,0.7), transparent);
+    background-repeat: repeat;
+    background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px, 400px 400px;
+    animation: sparkle 20s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes sparkle {
+    from { transform: translateY(0px); }
+    to { transform: translateY(-550px); }
+}
+
+#memoryCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+}
+
+/* Upload Panel */
+.upload-panel {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 300px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.upload-panel h1 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.upload-panel p {
+    font-size: 0.9em;
+    margin-bottom: 15px;
+    opacity: 0.8;
+}
+
+#photoUpload {
+    display: none;
+}
+
+.upload-btn {
+    display: inline-block;
+    background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.photo-count {
+    margin-top: 15px;
+    font-size: 0.8em;
+    opacity: 0.7;
+    text-align: center;
+}
+
+/* Controls */
+.controls {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    display: flex;
+    gap: 10px;
+}
+
+.control-btn {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9em;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 20px;
+    max-width: 80vw;
+    max-height: 80vh;
+    text-align: center;
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    color: white;
+}
+
+#modalImage {
+    max-width: 100%;
+    max-height: 60vh;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.photo-info {
+    color: white;
+}
+
+.photo-info p {
+    margin: 10px 0;
+    opacity: 0.8;
+}
+
+.delete-btn {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .upload-panel {
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        max-width: none;
+    }
+    
+    .controls {
+        bottom: 20px;
+        left: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .modal-content {
+        margin: 20px;
+        max-width: calc(100vw - 40px);
+    }
+}
+
+/* Photo floating animation classes */
+.floating-photo {
+    position: absolute;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    filter: brightness(0.8);
+}
+
+.floating-photo:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+    z-index: 100;
+}

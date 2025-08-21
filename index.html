@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shape Memory Space - Galaxy Photo Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Firebase SDK - Only Firestore (no Storage needed) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="galaxy-container">
+        <canvas id="memoryCanvas"></canvas>
+        
+        <!-- Clean Public Interface -->
+        <div class="upload-panel">
+            <h1>Shapee Memory Space</h1>
+            <p>Your memories floating in the galaxy</p>
+            
+            <!-- Upload Section (Hidden by default) -->
+            <div class="upload-section" id="uploadSection" style="display: none;">
+                <input type="file" id="photoUpload" accept="image/*" multiple>
+                <label for="photoUpload" class="upload-btn">
+                    <span>+ Add Photos</span>
+                </label>
+                <button onclick="window.memorySpace?.logout()" class="logout-btn">
+                    🔓 Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Hidden Admin Panel (Secret Access) -->
+        <div class="admin-panel" id="adminPanel" style="display: none;">
+            <div class="admin-dropdown">
+                <div class="admin-content show">
+                    <input type="password" id="adminPassword" placeholder="Enter admin password..." class="admin-input">
+                    <button onclick="window.memorySpace?.authenticate()" class="auth-btn">Login</button>
+                    <button onclick="window.memorySpace?.hideAdminPanel()" class="close-btn">✕</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simple Photo Modal -->
+        <div id="photoModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <img id="modalImage" src="" alt="Memory">
+                <div id="photoName" style="display: none;"></div>
+                <div id="photoDate" style="display: none;"></div>
+                <button id="deletePhoto" style="display: none;"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script-github.js"></script>
+</body>
+</html>
