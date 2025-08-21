@@ -1,0 +1,16 @@
+{
+  "name": "shape-memory-space",
+  "version": "1.0.0",
+  "description": "Galaxy photo viewer with floating memories and shooting stars",
+  "main": "index.html",
+  "scripts": {
+    "start": "node -e \"console.log('Static site - no build required')\"",
+    "build": "echo 'Static site - no build step needed'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["galaxy", "photos", "memories", "firebase", "github"],
+  "author": "jaypeewhat",
+  "license": "MIT"
+}
