@@ -25,6 +25,19 @@ export default async function handler(req, res) {
     const { method, body } = req;
 
     if (method === 'GET') {
+      // List files in repository or return environment status
+      if (req.query.test === 'env') {
+        // Test endpoint to check environment variables
+        return res.status(200).json({
+          hasToken: !!GITHUB_TOKEN,
+          hasUsername: !!GITHUB_USERNAME,
+          hasRepository: !!GITHUB_REPOSITORY,
+          tokenPrefix: GITHUB_TOKEN ? GITHUB_TOKEN.substring(0, 4) + '...' : 'missing',
+          username: GITHUB_USERNAME || 'missing',
+          repository: GITHUB_REPOSITORY || 'missing'
+        });
+      }
+      
       // List files in repository
       const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPOSITORY}/contents`, {
         headers: {

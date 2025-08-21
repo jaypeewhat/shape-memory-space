@@ -17,6 +17,27 @@ const GITHUB_CONFIG = {
     useAPI: window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' // Use API when deployed
 };
 
+// Debug the API usage
+console.log('Current hostname:', window.location.hostname);
+console.log('Will use API:', GITHUB_CONFIG.useAPI);
+
+// Test API connection function
+async function testAPIConnection() {
+    if (GITHUB_CONFIG.useAPI) {
+        try {
+            console.log('Testing API connection...');
+            const response = await fetch('/api/github?test=env');
+            const result = await response.json();
+            console.log('API Environment Test:', result);
+        } catch (error) {
+            console.error('API Test Failed:', error);
+        }
+    }
+}
+
+// Call test on page load
+setTimeout(testAPIConnection, 1000);
+
 // 🎉 READY TO USE! 
 // Your Shape Memory Space is now configured to store large images on GitHub
 // The images will be stored at: https://github.com/jaypeewhat/memory-space-images
@@ -388,6 +409,7 @@ class ShapeMemorySpace {
     async uploadToGitHub(path, base64Content) {
         if (GITHUB_CONFIG.useAPI) {
             // Use Vercel API when deployed
+            console.log('Using Vercel API for upload...');
             const response = await fetch('/api/github', {
                 method: 'POST',
                 headers: {
@@ -400,12 +422,21 @@ class ShapeMemorySpace {
                 })
             });
             
+            console.log('API Response status:', response.status);
+            
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Upload failed');
+                const error = await response.text();
+                console.error('API Error:', error);
+                try {
+                    const errorJson = JSON.parse(error);
+                    throw new Error(errorJson.message || errorJson.error || 'Upload failed');
+                } catch (e) {
+                    throw new Error(`API Error (${response.status}): ${error}`);
+                }
             }
             
             const result = await response.json();
+            console.log('Upload successful via API');
             
             // Return the raw GitHub URL for direct access
             return `https://raw.githubusercontent.com/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repository}/${GITHUB_CONFIG.branch}/${path}`;
