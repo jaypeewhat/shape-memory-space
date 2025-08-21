@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firestore Only Test - Shape Memory Space</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .info { color: blue; font-weight: bold; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 3px; }
+        button:hover { background: #45a049; }
+        input[type="file"] { margin: 10px 0; }
+        .preview { max-width: 200px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌌 Shape Memory Space - Firestore Only Test</h1>
+        <p>This version stores images as base64 data directly in Firestore (no Firebase Storage needed).</p>
+        
+        <div class="test-section">
+            <h3>1. Test Firestore Connection</h3>
+            <button onclick="testFirestore()">Test Database Connection</button>
+            <div id="firestoreResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Test Image Upload (Base64 to Firestore)</h3>
+            <input type="file" id="testImage" accept="image/*">
+            <button onclick="testImageUpload()">Test Image Upload</button>
+            <div id="uploadResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. View Stored Memories</h3>
+            <button onclick="loadMemories()">Load All Memories</button>
+            <div id="memoriesResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Clear Test Data</h3>
+            <button onclick="clearTestData()" style="background: #f44336;">Clear All Test Data</button>
+            <div id="clearResults"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK - Only Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQIATsqgmEMhdpSsM_DB11YXH18p3UG08",
+            authDomain: "memoryspace-fe5ab.firebaseapp.com",
+            projectId: "memoryspace-fe5ab",
+            storageBucket: "memoryspace-fe5ab.firebasestorage.app",
+            messagingSenderId: "618698649513",
+            appId: "1:618698649513:web:eac0d49ab0fceb25eb9eb8"
+        };
+
+        // Initialize Firebase - Only Firestore
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function testFirestore() {
+            const resultsDiv = document.getElementById('firestoreResults');
+            resultsDiv.innerHTML = '<div class="info">Testing Firestore connection...</div>';
+
+            try {
+                const testDoc = {
+                    message: 'Firestore connection test successful!',
+                    timestamp: new Date(),
+                    type: 'connection_test'
+                };
+
+                await db.collection('test').doc('connection').set(testDoc);
+                const doc = await db.collection('test').doc('connection').get();
+                
+                if (doc.exists) {
+                    resultsDiv.innerHTML = `
+                        <div class="success">✅ Firestore connection successful!</div>
+                        <p>Data: ${JSON.stringify(doc.data(), null, 2)}</p>
+                    `;
+                    // Clean up
+                    await db.collection('test').doc('connection').delete();
+                } else {
+                    throw new Error('Document was not created');
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Firestore Error: ${error.message}</div>`;
+                console.error('Firestore test failed:', error);
+            }
+        }
+
+        async function testImageUpload() {
+            const resultsDiv = document.getElementById('uploadResults');
+            const fileInput = document.getElementById('testImage');
+            
+            if (!fileInput.files[0]) {
+                resultsDiv.innerHTML = '<div class="error">Please select an image file first!</div>';
+                return;
+            }
+
+            const file = fileInput.files[0];
+            
+            // Check file size (Firestore has document size limits)
+            if (file.size > 1024 * 1024) { // 1MB limit
+                resultsDiv.innerHTML = '<div class="error">Image too large! Please use images under 1MB.</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="info">Converting image to base64 and uploading to Firestore...</div>';
+
+            try {
+                // Convert file to base64
+                const base64Data = await fileToBase64(file);
+                
+                // Create memory document
+                const memoryData = {
+                    id: `test_memory_${Date.now()}`,
+                    name: file.name,
+                    imageData: base64Data,
+                    uploadDate: new Date().toISOString(),
+                    size: file.size,
+                    type: file.type,
+                    x: Math.random() * 500,
+                    y: Math.random() * 300,
+                    isTest: true
+                };
+
+                // Save to Firestore
+                await db.collection('memories').doc(memoryData.id).set(memoryData);
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">✅ Image successfully saved to Firestore!</div>
+                    <p><strong>File:</strong> ${file.name} (${(file.size/1024).toFixed(2)} KB)</p>
+                    <p><strong>Document ID:</strong> ${memoryData.id}</p>
+                    <img src="${base64Data}" class="preview" alt="Uploaded image">
+                `;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Upload Error: ${error.message}</div>`;
+                console.error('Upload test failed:', error);
+            }
+        }
+
+        async function loadMemories() {
+            const resultsDiv = document.getElementById('memoriesResults');
+            resultsDiv.innerHTML = '<div class="info">Loading memories from Firestore...</div>';
+
+            try {
+                const snapshot = await db.collection('memories').get();
+                let memoriesHtml = '<div class="success">✅ Memories loaded successfully!</div>';
+                
+                if (snapshot.empty) {
+                    memoriesHtml += '<p>No memories found. Upload some test images first!</p>';
+                } else {
+                    memoriesHtml += `<p>Found ${snapshot.size} memories:</p>`;
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        memoriesHtml += `
+                            <div style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
+                                <strong>${data.name}</strong><br>
+                                <small>Uploaded: ${new Date(data.uploadDate).toLocaleString()}</small><br>
+                                <small>Size: ${(data.size/1024).toFixed(2)} KB</small><br>
+                                ${data.imageData ? `<img src="${data.imageData}" class="preview" alt="${data.name}">` : ''}
+                            </div>
+                        `;
+                    });
+                }
+                
+                resultsDiv.innerHTML = memoriesHtml;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Load Error: ${error.message}</div>`;
+                console.error('Load memories failed:', error);
+            }
+        }
+
+        async function clearTestData() {
+            if (!confirm('Are you sure you want to clear all test data?')) return;
+            
+            const resultsDiv = document.getElementById('clearResults');
+            resultsDiv.innerHTML = '<div class="info">Clearing test data...</div>';
+
+            try {
+                const snapshot = await db.collection('memories').where('isTest', '==', true).get();
+                const deletePromises = [];
+                
+                snapshot.forEach(doc => {
+                    deletePromises.push(doc.ref.delete());
+                });
+                
+                await Promise.all(deletePromises);
+                
+                resultsDiv.innerHTML = `<div class="success">✅ Cleared ${snapshot.size} test memories</div>`;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Clear Error: ${error.message}</div>`;
+                console.error('Clear test data failed:', error);
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>

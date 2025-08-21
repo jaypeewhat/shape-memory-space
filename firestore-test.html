@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firestore Test - Shape Memory Space</title>
+</head>
+<body>
+    <h1>Testing Firestore Connection</h1>
+    <button onclick="testFirestore()">Test Database Connection</button>
+    <div id="results"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQIATsqgmEMhdpSsM_DB11YXH18p3UG08",
+            authDomain: "memoryspace-fe5ab.firebaseapp.com",
+            projectId: "memoryspace-fe5ab",
+            storageBucket: "memoryspace-fe5ab.firebasestorage.app",
+            messagingSenderId: "618698649513",
+            appId: "1:618698649513:web:eac0d49ab0fceb25eb9eb8"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function testFirestore() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = 'Testing...';
+
+            try {
+                // Test write
+                await db.collection('test').doc('connection').set({
+                    message: 'Hello from Shape Memory Space!',
+                    timestamp: new Date(),
+                    test: true
+                });
+
+                // Test read
+                const doc = await db.collection('test').doc('connection').get();
+                
+                if (doc.exists) {
+                    resultsDiv.innerHTML = `
+                        <h2 style="color: green;">✅ Success! Firestore is working!</h2>
+                        <p><strong>Data written and read successfully:</strong></p>
+                        <pre>${JSON.stringify(doc.data(), null, 2)}</pre>
+                        <p>You can now use your Shape Memory Space app!</p>
+                    `;
+                } else {
+                    throw new Error('Document was not created');
+                }
+
+                // Clean up test data
+                await db.collection('test').doc('connection').delete();
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <h2 style="color: red;">❌ Error: ${error.message}</h2>
+                    <p>Please check:</p>
+                    <ul>
+                        <li>Firestore Database is enabled in Firebase Console</li>
+                        <li>Security rules allow read/write (test mode)</li>
+                        <li>Internet connection is working</li>
+                    </ul>
+                `;
+                console.error('Firestore test failed:', error);
+            }
+        }
+    </script>
+</body>
+</html>
